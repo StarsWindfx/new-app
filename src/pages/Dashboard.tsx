@@ -4,6 +4,7 @@ import { CheckCircle, CalendarBlank, Barbell, TrendUp, Sparkle, Smiley, NotePenc
 import { StarField } from '../components/StarField';
 import { GlassCard } from '../components/GlassCard';
 import { AnimatedCounter } from '../components/AnimatedCounter';
+import { FloatOrb } from '../components/FloatOrb';
 import { Todo, Event, Workout, JournalEntry } from '../types';
 
 interface DashboardProps {
@@ -94,11 +95,16 @@ export function Dashboard({ todos, events, workouts, journalEntries }: Dashboard
       <div className="fixed inset-0 z-0">
         <StarField />
       </div>
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-bg/80 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-bg/90 to-transparent" />
-        <div className="absolute top-1/4 -left-32 w-64 h-64 rounded-full bg-violet/[0.04] blur-[80px]" />
-        <div className="absolute bottom-1/3 -right-32 w-64 h-64 rounded-full bg-blue/[0.04] blur-[80px]" />
+        {/* Aurora blobs */}
+        <div className="aurora-blob absolute top-[-20%] left-[-15%] w-[70vw] h-[70vw] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(105,11,120,0.18) 0%, transparent 65%)' }} />
+        <div className="aurora-blob absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vw] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(38,84,124,0.15) 0%, transparent 65%)', animationDelay: '-9s' }} />
+        <div className="aurora-blob absolute top-[30%] right-[5%] w-[40vw] h-[40vw] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(139,30,160,0.10) 0%, transparent 65%)', animationDelay: '-4s' }} />
       </div>
 
       <motion.div
@@ -109,20 +115,27 @@ export function Dashboard({ todos, events, workouts, journalEntries }: Dashboard
       >
         {/* Header */}
         <motion.div variants={item} className="mb-7">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-light animate-pulse" />
-            <span className="text-text-secondary text-xs font-medium tracking-wider uppercase">
-              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </span>
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-violet-light animate-pulse" />
+                <span className="text-text-secondary text-xs font-medium tracking-wider uppercase">
+                  {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
+              </div>
+              <h1 className="text-3xl font-bold text-text-primary leading-tight">
+                {greeting}
+              </h1>
+              <p className="text-text-muted text-sm mt-0.5">
+                <span className="bg-gradient-to-r from-violet-light to-blue-light bg-clip-text text-transparent font-semibold">
+                  StarsWind
+                </span>
+              </p>
+            </div>
+            <div style={{ width: 130, height: 130, flexShrink: 0, marginBottom: -8 }}>
+              <FloatOrb />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-text-primary leading-tight">
-            {greeting}
-          </h1>
-          <p className="text-text-muted text-sm mt-0.5">
-            <span className="bg-gradient-to-r from-violet-light to-blue-light bg-clip-text text-transparent font-semibold">
-              StarsWind
-            </span>
-          </p>
         </motion.div>
 
         {/* Mood + streak row */}

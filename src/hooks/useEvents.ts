@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { uuid } from '../utils/uuid';
 import { Event } from '../types';
 
 const STORAGE_KEY = 'starswind_events';
@@ -23,7 +24,7 @@ export function useEvents() {
   const addEvent = useCallback((data: Omit<Event, 'id' | 'created_at'>) => {
     const event: Event = {
       ...data,
-      id: crypto.randomUUID(),
+      id: uuid(),
       created_at: new Date().toISOString(),
     };
     setEvents(prev => [...prev, event].sort((a, b) => a.date.localeCompare(b.date)));

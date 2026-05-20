@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { uuid } from '../utils/uuid';
 import { Todo } from '../types';
 
 const STORAGE_KEY = 'starswind_todos';
@@ -22,7 +23,7 @@ export function useTodos() {
 
   const addTodo = useCallback((title: string, priority: Todo['priority'], category: string) => {
     const todo: Todo = {
-      id: crypto.randomUUID(),
+      id: uuid(),
       title,
       completed: false,
       priority,

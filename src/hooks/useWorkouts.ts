@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { uuid } from '../utils/uuid';
 import { Workout } from '../types';
 
 const STORAGE_KEY = 'starswind_workouts';
@@ -23,7 +24,7 @@ export function useWorkouts() {
   const addWorkout = useCallback((data: Omit<Workout, 'id' | 'created_at'>) => {
     const workout: Workout = {
       ...data,
-      id: crypto.randomUUID(),
+      id: uuid(),
       created_at: new Date().toISOString(),
     };
     setWorkouts(prev => [workout, ...prev]);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { uuid } from '../utils/uuid';
 import { JournalEntry, Mood } from '../types';
 
 const STORAGE_KEY = 'starswind_journal';
@@ -29,7 +30,7 @@ export function useJournal() {
       setEntries(prev => prev.map(e => e.id === existing.id ? { ...e, content, mood } : e));
     } else {
       const entry: JournalEntry = {
-        id: crypto.randomUUID(),
+        id: uuid(),
         content,
         mood,
         date: today,

@@ -11,16 +11,29 @@
   html {
     background-color: #020202;
     color: #F0F0F0;
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
     background-color: #020202;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
+    overscroll-behavior-y: contain;
     overflow-x: hidden;
+    min-height: 100dvh;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  input, textarea, select {
+    font-size: 16px;
+    font-family: inherit;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -83,4 +96,19 @@
   .glow-blue {
     box-shadow: 0 0 20px rgba(38,84,124,0.3), 0 4px 24px rgba(0,0,0,0.4);
   }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+  }
+}
+
+@keyframes aurora {
+  0%, 100% { transform: translate(-10%, -10%) scale(1.1); opacity: 0.06; }
+  33%       { transform: translate(5%, 8%)   scale(1.25); opacity: 0.09; }
+  66%       { transform: translate(-5%, 15%) scale(1.15); opacity: 0.07; }
+}
+
+.aurora-blob {
+  animation: aurora 18s ease-in-out infinite;
+  pointer-events: none;
 }

@@ -23,6 +23,9 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    minify: 'esbuild',
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
