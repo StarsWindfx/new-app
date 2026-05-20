@@ -1,65 +1,62 @@
-import { useState, useEffect, useCallback } from 'react';
-import { uuid } from '../utils/uuid';
-import { Event } from '../types';
+import { useState, useEffect, useCallback } from 'react'
+import { uuid } from '../utils/uuid'
+import { supabase } from '../lib/supabase'
+import { HAS_SUPABASE, getUserId, seedIfEmpty } from '../lib/auth'
+import { schedule } from '../lib/notificationScheduler'
+import type { Event } from '../types'
 
-const STORAGE_KEY = 'starswind_events';
+const KEY = 'starswind_events'
 
-function load(): Event[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
-  }
+function local(): Event[] {
+  try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
 }
-
-function save(events: Event[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-}
+function persist(data: Event[]) { localStorage.setItem(KEY, JSON.stringify(data)) }
 
 export function useEvents() {
-  const [events, setEvents] = useState<Event[]>(load);
+  const [events, setEvents] = useState<Event[]>(local)
 
-  useEffect(() => { save(events); }, [events]);
+  useEffect(() => {
+    if (!HAS_SUPABASE) return
+    getUserId().then(async uid => {
+      if (!uid) return
+      await seedIfEmpty('events', KEY, uid)
+      const { data } = await supabase
+        .from('events')
+        .select('*')
+        .eq('user_id', uid)
+        .order('date', { ascending: true })
+      if (data) { setEvents(data); persist(data) }
+    })
+  }, [])
 
-  const addEvent = useCallback((data: Omit<Event, 'id' | 'created_at'>) => {
-    const event: Event = {
-      ...data,
-      id: uuid(),
-      created_at: new Date().toISOString(),
-    };
-    setEvents(prev => [...prev, event].sort((a, b) => a.date.localeCompare(b.date)));
-    if (data.reminder && data.time) scheduleReminder(event);
-  }, []);
+  const addEvent = useCallback(async (data: Omit<Event, 'id' | 'created_at'>) => {
+    const event: Event = { ...data, id: uuid(), created_at: new Date().toISOString() }
+    setEvents(prev => {
+      const next = [...prev, event].sort((a, b) => a.date.localeCompare(b.date))
+      persist(next)
+      return next
+    })
+    schedule(event)
+    if (!HAS_SUPABASE) return
+    const uid = await getUserId()
+    if (uid) await supabase.from('events').insert({ ...event, user_id: uid })
+  }, [])
 
-  const deleteEvent = useCallback((id: string) => {
-    setEvents(prev => prev.filter(e => e.id !== id));
-  }, []);
+  const deleteEvent = useCallback(async (id: string) => {
+    setEvents(prev => { const next = prev.filter(e => e.id !== id); persist(next); return next })
+    if (!HAS_SUPABASE) return
+    await supabase.from('events').delete().eq('id', id)
+  }, [])
 
-  const updateEvent = useCallback((id: string, updates: Partial<Event>) => {
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
-  }, []);
+  const updateEvent = useCallback(async (id: string, updates: Partial<Event>) => {
+    setEvents(prev => {
+      const next = prev.map(e => e.id === id ? { ...e, ...updates } : e)
+      persist(next)
+      return next
+    })
+    if (!HAS_SUPABASE) return
+    await supabase.from('events').update(updates).eq('id', id)
+  }, [])
 
-  return { events, addEvent, deleteEvent, updateEvent };
-}
-
-function scheduleReminder(event: Event) {
-  if (!('Notification' in window)) return;
-  const [h, m] = event.time.split(':').map(Number);
-  const eventDate = new Date(event.date);
-  eventDate.setHours(h, m, 0, 0);
-  const reminderTime = new Date(eventDate.getTime() - 15 * 60 * 1000);
-  const now = new Date();
-  const delay = reminderTime.getTime() - now.getTime();
-  if (delay > 0) {
-    setTimeout(() => {
-      Notification.requestPermission().then(perm => {
-        if (perm === 'granted') {
-          new Notification(`StarsWind — ${event.title}`, {
-            body: `Dans 15 minutes`,
-            icon: '/pwa-192.png',
-          });
-        }
-      });
-    }, delay);
-  }
+  return { events, addEvent, deleteEvent, updateEvent }
 }

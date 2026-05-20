@@ -1,42 +1,56 @@
-import { useState, useEffect, useCallback } from 'react';
-import { uuid } from '../utils/uuid';
-import { Workout } from '../types';
+import { useState, useEffect, useCallback } from 'react'
+import { uuid } from '../utils/uuid'
+import { supabase } from '../lib/supabase'
+import { HAS_SUPABASE, getUserId, seedIfEmpty } from '../lib/auth'
+import type { Workout } from '../types'
 
-const STORAGE_KEY = 'starswind_workouts';
+const KEY = 'starswind_workouts'
 
-function load(): Workout[] {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
-  }
+function local(): Workout[] {
+  try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
 }
-
-function save(workouts: Workout[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
-}
+function persist(data: Workout[]) { localStorage.setItem(KEY, JSON.stringify(data)) }
 
 export function useWorkouts() {
-  const [workouts, setWorkouts] = useState<Workout[]>(load);
+  const [workouts, setWorkouts] = useState<Workout[]>(local)
 
-  useEffect(() => { save(workouts); }, [workouts]);
+  useEffect(() => {
+    if (!HAS_SUPABASE) return
+    getUserId().then(async uid => {
+      if (!uid) return
+      await seedIfEmpty('workouts', KEY, uid)
+      const { data } = await supabase
+        .from('workouts')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+      if (data) { setWorkouts(data); persist(data) }
+    })
+  }, [])
 
-  const addWorkout = useCallback((data: Omit<Workout, 'id' | 'created_at'>) => {
-    const workout: Workout = {
-      ...data,
-      id: uuid(),
-      created_at: new Date().toISOString(),
-    };
-    setWorkouts(prev => [workout, ...prev]);
-  }, []);
+  const addWorkout = useCallback(async (data: Omit<Workout, 'id' | 'created_at'>) => {
+    const workout: Workout = { ...data, id: uuid(), created_at: new Date().toISOString() }
+    setWorkouts(prev => { const next = [workout, ...prev]; persist(next); return next })
+    if (!HAS_SUPABASE) return
+    const uid = await getUserId()
+    if (uid) await supabase.from('workouts').insert({ ...workout, user_id: uid })
+  }, [])
 
-  const deleteWorkout = useCallback((id: string) => {
-    setWorkouts(prev => prev.filter(w => w.id !== id));
-  }, []);
+  const deleteWorkout = useCallback(async (id: string) => {
+    setWorkouts(prev => { const next = prev.filter(w => w.id !== id); persist(next); return next })
+    if (!HAS_SUPABASE) return
+    await supabase.from('workouts').delete().eq('id', id)
+  }, [])
 
-  const updateWorkout = useCallback((id: string, updates: Partial<Workout>) => {
-    setWorkouts(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
-  }, []);
+  const updateWorkout = useCallback(async (id: string, updates: Partial<Workout>) => {
+    setWorkouts(prev => {
+      const next = prev.map(w => w.id === id ? { ...w, ...updates } : w)
+      persist(next)
+      return next
+    })
+    if (!HAS_SUPABASE) return
+    await supabase.from('workouts').update(updates).eq('id', id)
+  }, [])
 
-  return { workouts, addWorkout, deleteWorkout, updateWorkout };
+  return { workouts, addWorkout, deleteWorkout, updateWorkout }
 }
