@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: #020202;
+    color: #F0F0F0;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #020202;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  ::selection {
+    background: rgba(105, 11, 120, 0.4);
+    color: #F0F0F0;
+  }
+
+  input:focus, textarea:focus {
+    outline: none;
+  }
+
+  button:focus-visible {
+    outline: 2px solid rgba(105, 11, 120, 0.6);
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+}
+
+@layer utilities {
+  .text-gradient-violet-blue {
+    background: linear-gradient(135deg, #8B1099, #3A7AB5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-bg {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(12px);
+  }
+
+  .glow-violet {
+    box-shadow: 0 0 20px rgba(105,11,120,0.3), 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(38,84,124,0.3), 0 4px 24px rgba(0,0,0,0.4);
+  }
+}
